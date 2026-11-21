@@ -1,5 +1,5 @@
 /* เก็บไฟล์ของแอปไว้ในเครื่อง ให้เปิดได้แม้ไม่มีอินเทอร์เน็ต */
-var CACHE = 'pricecheck-v1';
+var CACHE = 'pricecheck-v2';
 var FILES = ['./', 'index.html', 'manifest.webmanifest', 'lib/html5-qrcode.min.js', 'icons/icon-192.png', 'icons/icon-512.png'];
 
 self.addEventListener('install', function (e) {
