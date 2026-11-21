@@ -53,6 +53,14 @@ main{flex:1;min-height:0;overflow:hidden;position:relative}
   background:rgba(6,16,13,.78);color:#fff;text-align:center;padding:16px}
 #camOverlay p{margin:0;font-size:14px;opacity:.9;max-width:28ch}
 #camOverlay[hidden]{display:none}
+.cam-off{position:absolute;top:10px;right:10px;z-index:3;border:0;border-radius:18px;padding:7px 12px;font-size:14px;font-weight:700;
+  background:rgba(0,0,0,.55);color:#fff}
+.cam-off[hidden]{display:none}
+.cam-ctl{position:absolute;left:0;right:0;bottom:10px;z-index:3;display:flex;justify-content:center;gap:8px;pointer-events:none}
+.cam-ctl[hidden]{display:none}
+.cam-ctl button{pointer-events:auto;border:0;min-width:46px;height:38px;border-radius:19px;padding:0 12px;font-size:15px;font-weight:700;
+  background:rgba(0,0,0,.55);color:#fff}
+.cam-ctl button[aria-pressed="true"]{background:#fff;color:#06100d}
 .big-btn{background:var(--acc);color:var(--acc-ink);border:0;border-radius:12px;padding:12px 22px;font-weight:700;font-size:17px}
 .sec-btn{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-weight:600}
 .row{display:flex;gap:10px;align-items:center}
@@ -75,6 +83,14 @@ main{flex:1;min-height:0;overflow:hidden;position:relative}
 
 .manual{display:flex;gap:8px}
 .manual input{flex:1;min-width:0;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:11px 12px;font-size:16px}
+
+#noCodeBox{display:flex;flex-direction:column;gap:6px}
+#noCodeBox[hidden]{display:none}
+.nocode{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.nocode button{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:9px 10px;text-align:left;box-shadow:var(--shadow);min-width:0}
+.nocode button span{display:block;font-weight:600;font-size:15px;overflow-wrap:anywhere}
+.nocode button b{display:block;color:var(--acc);font-size:17px}
+.nocode button small{color:var(--mut);font-size:12px;font-weight:400;margin-left:4px}
 
 /* cart */
 .empty{color:var(--mut);text-align:center;padding:28px 10px}
@@ -111,6 +127,9 @@ main{flex:1;min-height:0;overflow:hidden;position:relative}
 .plist .p .n{flex:1;min-width:0;overflow-wrap:anywhere}
 .plist .p .n small{display:block;color:var(--mut)}
 .plist .p b{white-space:nowrap}
+.plist .p.dup{background:var(--warn-soft)}
+.plist .p.dup small{color:var(--warn);font-weight:600}
+.plist .p.dup b{text-decoration:line-through;color:var(--mut)}
 .count{font-size:13px;color:var(--mut);padding:0 2px}
 .chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;margin:0 -2px;scrollbar-width:none;flex:0 0 auto}
 .chips::-webkit-scrollbar{display:none}
@@ -171,6 +190,8 @@ nav .badge[hidden]{display:none}
         <p id="camMsg">แตะปุ่มเพื่อเปิดกล้องสแกนบาร์โค้ด</p>
         <button id="btnCam" class="big-btn" type="button">เปิดกล้อง</button>
       </div>
+      <button id="btnCamOff" class="cam-off" type="button" hidden>✕ ปิดกล้อง</button>
+      <div id="camCtl" class="cam-ctl" hidden></div>
     </div></div>
     <label class="card switch">
       <input id="auto" type="checkbox">
@@ -178,9 +199,13 @@ nav .badge[hidden]{display:none}
     </label>
     <div id="result" class="card"><p class="hint">สแกนบาร์โค้ดที่สินค้า ราคาจะแสดงตรงนี้</p></div>
     <form id="manual" class="manual" autocomplete="off">
-      <input id="manualCode" inputmode="numeric" placeholder="หรือพิมพ์เลขบาร์โค้ด" aria-label="เลขบาร์โค้ด">
+      <input id="manualCode" inputmode="numeric" placeholder="หรือพิมพ์เลขบาร์โค้ด / รหัสสินค้า" aria-label="เลขบาร์โค้ดหรือรหัสสินค้า">
       <button class="sec-btn" type="submit">ค้นหา</button>
     </form>
+    <div id="noCodeBox" hidden>
+      <div class="count">สินค้าไม่มีบาร์โค้ด · แตะเพื่อดูราคา/เพิ่มลงตะกร้า</div>
+      <div id="noCodeList" class="nocode"></div>
+    </div>
   </section>
 
   <!-- ตะกร้า -->
@@ -202,7 +227,9 @@ nav .badge[hidden]{display:none}
     <div id="slot-add"></div>
     <form id="addForm" class="card form" autocomplete="off">
       <div id="aStat" class="stat new">สแกนบาร์โค้ดสินค้า หรือพิมพ์เลขด้านล่าง</div>
-      <div><label for="aBarcode">บาร์โค้ด</label><input id="aBarcode" inputmode="numeric" placeholder="สแกนหรือพิมพ์เลข"></div>
+      <div><label for="aBarcode">บาร์โค้ด</label>
+        <div class="row"><input id="aBarcode" class="grow" inputmode="numeric" placeholder="สแกนหรือพิมพ์เลข">
+          <button id="btnNoCode" class="sec-btn" type="button">ไม่มีบาร์โค้ด</button></div></div>
       <div><label for="aName">ชื่อสินค้า</label><input id="aName" maxlength="120" placeholder="เช่น น้ำดื่ม 600 มล."></div>
       <div><label for="aCat">หมวดหมู่</label><select id="aCat"></select>
         <input id="aCatNew" maxlength="60" placeholder="พิมพ์ชื่อหมวดหมู่ใหม่" aria-label="ชื่อหมวดหมู่ใหม่" hidden></div>
@@ -276,7 +303,28 @@ var LS = {
 };
 
 /* ---------- ข้อมูลสินค้า ---------- */
-var products=[], byCode={}, updatedAt=null, usingDemo=false;
+var products=[], byCode={}, updatedAt=null, usingDemo=false, dupCount=0;
+/* serverList = ข้อมูลล่าสุดจากชีต, queue = รายการที่บันทึกในเครื่องแล้วแต่ยังส่งขึ้นชีตไม่ได้ (เน็ตหลุด)
+   products ที่แสดง = serverList + queue */
+var serverList=[], queue=LS.get('pc_queue',[]), offlineSince=0, pinRequired=LS.get('pc_pinreq',false);
+function applyOps(list,ops){
+  list=list.slice();
+  ops.forEach(function(op){
+    var k=norm(op.barcode),hit=-1;
+    for(var i=0;i<list.length;i++){if(norm(list[i].barcode)===k){hit=i;break;}}
+    if(op.action==='delete'){if(hit>=0)list.splice(hit,1);}
+    else{var p={barcode:op.barcode,name:op.name,price:op.price,category:op.category||''};if(hit>=0)list[hit]=p;else list.push(p);}
+  });
+  return list;
+}
+function rebuild(when){setProducts(applyOps(serverList,queue),when||updatedAt||Date.now());syncLabel();}
+function syncLabel(){
+  if(usingDemo){setSync('โหมดทดลอง · '+products.length+' รายการ');return;}
+  var t=(offlineSince?'ออฟไลน์ · ข้อมูลเมื่อ '+fmtTime(updatedAt):'อัปเดต '+fmtTime(updatedAt))+' · '+products.length+' รายการ';
+  if(queue.length)t='รอส่งขึ้นชีต '+queue.length+' รายการ · '+t;
+  if(dupCount)t='⚠ บาร์โค้ดซ้ำ '+dupCount+' · '+t;
+  setSync(t,!!(queue.length||offlineSince||dupCount));
+}
 function norm(c){
   c=String(c==null?'':c).trim();
   return /^\d+$/.test(c)?c.replace(/^0+/,''):c.toUpperCase();
@@ -285,9 +333,30 @@ function setProducts(list,when){
   products=(list||[]).filter(function(p){return p&&p.barcode!==''&&!isNaN(Number(p.price));})
     .map(function(p){return {barcode:String(p.barcode).trim(),name:String(p.name||'').trim()||'(ไม่มีชื่อ)',price:Number(p.price),
       category:String(p.category==null?'':p.category).trim()};});
-  byCode={};products.forEach(function(p){byCode[norm(p.barcode)]=p;});
+  // บาร์โค้ดซ้ำ: ใช้แถวบนสุดเสมอ (ตรงกับ Code.gs) แถวถัดไปถูกทำเครื่องหมายว่าซ้ำ
+  byCode={};dupCount=0;
+  products.forEach(function(p){var k=norm(p.barcode);if(byCode[k]){p.dup=true;dupCount++;}else byCode[k]=p;});
   updatedAt=when||null;
-  renderCatSelect();renderList();renderCart();
+  renderCatSelect();renderList();renderCart();renderNoCode();
+}
+/* สินค้าไม่มีบาร์โค้ด: ใช้รหัสตัวเลขสั้น (ไม่เกิน 6 หลัก) เริ่มที่ 1001 บาร์โค้ดจริงยาว 8–13 หลักจึงไม่ชนกัน */
+var NOCODE_START=1001;
+function isNoCode(code){return /^\d{1,6}$/.test(String(code).trim());}
+function nextNoCode(){
+  var max=NOCODE_START-1;
+  products.forEach(function(p){if(isNoCode(p.barcode))max=Math.max(max,+p.barcode);});
+  return String(max+1);
+}
+function renderNoCode(){
+  var list=products.filter(function(p){return !p.dup&&isNoCode(p.barcode);}),h='';
+  var ref=allCats().concat([NOCAT]);
+  list=list.map(function(p,i){return {p:p,i:i};}).sort(function(a,b){
+    return (ref.indexOf(catOf(a.p))-ref.indexOf(catOf(b.p)))||(a.i-b.i);}).map(function(x){return x.p;});
+  list.forEach(function(p){
+    h+='<button type="button" data-b="'+esc(p.barcode)+'"><span>'+esc(p.name)+'</span><b class="num">'+money(p.price)+
+      '<small class="num">#'+esc(p.barcode)+'</small></b></button>';
+  });
+  $('noCodeList').innerHTML=h;$('noCodeBox').hidden=!list.length;
 }
 /* รายชื่อหมวดหมู่ทั้งหมด: หมวดเริ่มต้น + หมวดที่มีอยู่ในข้อมูลจริง ("อื่นๆ" อยู่ท้ายสุด) */
 function allCats(){
@@ -314,8 +383,9 @@ var refreshing=false;
 function refresh(manual){
   if(refreshing)return;
   if(!API_URL){
-    usingDemo=true;setProducts(DEMO,Date.now());
-    setSync('โหมดทดลอง · '+products.length+' รายการ');
+    usingDemo=true;
+    if(!serverList.length)serverList=DEMO.slice();
+    rebuild(Date.now());
     if(manual)toast('ยังไม่ได้ตั้งค่า API_URL ใช้สินค้าตัวอย่างอยู่');
     return;
   }
@@ -327,17 +397,68 @@ function refresh(manual){
     .then(function(j){
       if(!j||!Array.isArray(j.products))throw new Error('รูปแบบข้อมูลไม่ถูกต้อง');
       var now=Date.now();
-      LS.set('pc_products',{at:now,list:j.products});
-      setProducts(j.products,now);
-      setSync('อัปเดต '+fmtTime(now)+' · '+products.length+' รายการ');
-      if(manual)toast('อัปเดตราคาแล้ว');
+      serverList=j.products;offlineSince=0;
+      LS.set('pc_products',{at:now,list:serverList});
+      if(typeof j.pin==='boolean'){pinRequired=j.pin;LS.set('pc_pinreq',j.pin);showPinBox();}
+      rebuild(now);
+      if(manual)toast(dupCount?('อัปเดตแล้ว · พบบาร์โค้ดซ้ำ '+dupCount+' รายการ ดูในแท็บสินค้า'):'อัปเดตราคาแล้ว');
+      flushQueue();
     })
     .catch(function(e){
-      setSync(products.length?('ออฟไลน์ · ใช้ข้อมูลเมื่อ '+fmtTime(updatedAt)):'โหลดราคาไม่สำเร็จ',true);
+      offlineSince=offlineSince||Date.now();
+      if(products.length)syncLabel();else setSync('โหลดราคาไม่สำเร็จ',true);
       if(manual)toast('อัปเดตไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตหรือ URL');
     })
     .then(function(){clearTimeout(to);refreshing=false;$('btnRefresh').classList.remove('spin');});
 }
+
+/* ---------- ส่งรายการที่ค้างขึ้นชีต ---------- */
+var flushing=false,flushTimer=null;
+function saveQueue(){LS.set('pc_queue',queue);}
+function enqueue(op){
+  // บาร์โค้ดเดียวกันเก็บแค่คำสั่งล่าสุด (เพิ่ม/แก้/ลบ เป็นสถานะสุดท้ายอยู่แล้ว)
+  var k=norm(op.barcode);
+  queue=queue.filter(function(q){return norm(q.barcode)!==k;});
+  op.at=Date.now();queue.push(op);saveQueue();rebuild();
+}
+function flushQueue(){
+  // ผลลัพธ์: 'done' ส่งครบ | 'busy' กำลังส่งอยู่ | 'offline' | 'pin' | 'script'
+  if(flushing)return Promise.resolve('busy');
+  if(!queue.length||!API_URL)return Promise.resolve('done');
+  flushing=true;
+  var op=queue[0];
+  var payload={action:op.action,pin:$('aPin').value.trim(),barcode:op.barcode,name:op.name,price:op.price,category:op.category};
+  return postApi(payload).then(function(j){
+    flushing=false;offlineSince=0;
+    if(j&&j.ok){
+      serverList=applyOps(serverList,[op]);LS.set('pc_products',{at:Date.now(),list:serverList});
+      dropOp(op);
+      if(queue.length)return flushQueue();
+      rebuild(Date.now());return 'done';
+    }
+    if(j&&(j.error==='pin'||j.error==='locked')){ // ต้องใส่ PIN ก่อน รายการยังค้างไว้
+      pinRequired=true;LS.set('pc_pinreq',true);showPinBox(true);
+      aStat(apiError(j)+' · ใส่ PIN แล้วระบบจะส่งรายการที่ค้างให้เอง','err');syncLabel();return 'pin';
+    }
+    if(j&&j.error==='script'){ // สคริปต์ยังไม่พร้อม: เก็บรายการไว้ก่อน ไม่ทิ้งข้อมูล
+      aStat(apiError(j)+' (เก็บไว้ในเครื่องแล้ว '+queue.length+' รายการ)','err');syncLabel();
+      clearTimeout(flushTimer);flushTimer=setTimeout(flushQueue,5*60*1000);return 'script';
+    }
+    // ชีตไม่รับ (ข้อมูลผิด / สคริปต์มีปัญหา) ทิ้งรายการนี้แล้วแจ้ง
+    dropOp(op);rebuild();
+    aStat('ส่ง '+op.barcode+' ไม่สำเร็จ: '+apiError(j),'err');toast('บันทึกไม่สำเร็จ: '+apiError(j));
+    return flushQueue();
+  },function(){
+    // เน็ตหลุด/ช้า เก็บไว้ ลองใหม่ภายหลัง
+    flushing=false;offlineSince=offlineSince||Date.now();syncLabel();
+    clearTimeout(flushTimer);flushTimer=setTimeout(flushQueue,60*1000);
+    return 'offline';
+  });
+}
+function dropOp(op){
+  queue=queue.filter(function(q){return q!==op;});saveQueue();
+}
+window.addEventListener('online',function(){flushQueue();});
 
 /* ---------- เสียง / สั่น / ข้อความลอย ---------- */
 var actx=null;
@@ -453,6 +574,7 @@ function showResult(code){
 }
 function onCode(code){
   var now=Date.now();
+  armIdle(); // สแกนอยู่ นับเวลาปิดกล้องใหม่
   if(code===lastCode&&now-lastAt<2500){lastAt=now;return;} // กันสแกนซ้ำรัว (ถือบาร์โค้ดค้างไว้จะไม่เพิ่มซ้ำ)
   lastCode=code;lastAt=now;
   if(curView==='add'){fillAdd(code,true);return;}
@@ -466,7 +588,15 @@ $('manual').addEventListener('submit',function(e){
 });
 
 /* ---------- กล้อง ---------- */
-var scanner=null,camOn=false,camWanted=LS.get('pc_cam',false),camBusy=false;
+/* กล้องกินแบตและทำให้เครื่องร้อน จึง: ไม่เปิดเองตอนเปิดแอป, ปิดเองเมื่อไม่ได้ใช้ CAM_IDLE_MS, มีปุ่มปิดกล้อง */
+var CAM_IDLE_MS=60*1000;
+var scanner=null,camOn=false,camWanted=false,camBusy=false,idleT=null;
+function armIdle(){
+  clearTimeout(idleT);
+  if(camOn)idleT=setTimeout(function(){camWanted=false;stopCam('ปิดกล้องอัตโนมัติเพื่อประหยัดแบตเตอรี่');},CAM_IDLE_MS);
+}
+// แตะหน้าจอหรือพิมพ์ = ยังใช้งานอยู่ นับเวลาใหม่
+['pointerdown','keydown'].forEach(function(ev){document.addEventListener(ev,function(){if(camOn)armIdle();},true);});
 function camMessage(t,showBtn,label){
   $('camMsg').textContent=t;$('btnCam').hidden=!showBtn;if(label)$('btnCam').textContent=label;
   $('camOverlay').hidden=false;
@@ -484,11 +614,11 @@ function startCam(){
       useBarCodeDetectorIfSupported:true,verbose:false});
   }catch(e){camBusy=false;camMessage('เปิดตัวอ่านไม่สำเร็จ: '+e,true,'ลองใหม่');return;}
   scanner.start({facingMode:'environment'},{
-    fps:12,
+    fps:10,
     qrbox:function(w,h){return {width:Math.floor(w*.88),height:Math.floor(Math.min(h*.55,w*.45))};},
     videoConstraints:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}
   },function(text){onCode(text);},function(){})
-  .then(function(){camOn=true;camBusy=false;camWanted=true;LS.set('pc_cam',true);$('camOverlay').hidden=true;})
+  .then(function(){camOn=true;camBusy=false;camWanted=true;$('camOverlay').hidden=true;$('btnCamOff').hidden=false;armIdle();setupCamCtl();})
   .catch(function(err){
     camBusy=false;camOn=false;
     var s=String(err);
@@ -497,12 +627,53 @@ function startCam(){
     camMessage(msg,true,'ลองใหม่');
   });
 }
-function stopCam(){
+/* ซูม + ไฟแฟลช: บาร์โค้ดเล็กให้ถือห่าง ~15–20 ซม. (ระยะที่กล้องโฟกัสได้) แล้วซูม 2x–3x แทนการเอาเข้าใกล้ */
+var camZoom=LS.get('pc_zoom',1),torchOn=false;
+function camCaps(){try{return scanner.getRunningTrackCameraCapabilities();}catch(e){return null;}}
+function setupCamCtl(){
+  var box=$('camCtl'),caps=camCaps(),h='';
+  torchOn=false;
+  // โฟกัสอัตโนมัติต่อเนื่อง (ถ้าเครื่องรองรับ)
+  try{
+    var tc=scanner.getRunningTrackCapabilities()||{};
+    if(tc.focusMode&&tc.focusMode.indexOf('continuous')>=0)
+      scanner.applyVideoConstraints({advanced:[{focusMode:'continuous'}]}).catch(function(){});
+  }catch(e){}
+  var z=caps&&caps.zoomFeature();
+  if(z&&z.isSupported()&&z.max()>1){
+    var levels=[1,2,3,4].filter(function(v){return v>=z.min()&&v<=z.max();});
+    if(levels.indexOf(camZoom)<0)camZoom=levels[0]||1;
+    levels.forEach(function(v){h+='<button type="button" data-z="'+v+'" aria-pressed="'+(v===camZoom)+'" aria-label="ซูม '+v+' เท่า">'+v+'x</button>';});
+    if(camZoom!==1)z.apply(camZoom).catch(function(){});
+  }
+  var t=caps&&caps.torchFeature();
+  if(t&&t.isSupported())h+='<button type="button" data-t="1" aria-pressed="false" aria-label="ไฟแฟลช">🔦</button>';
+  box.innerHTML=h;box.hidden=!h;
+}
+$('camCtl').addEventListener('click',function(e){
+  var b=e.target.closest('button');if(!b||!camOn)return;
+  var caps=camCaps();if(!caps)return;
+  if(b.dataset.z){
+    var v=+b.dataset.z;
+    caps.zoomFeature().apply(v).then(function(){
+      camZoom=v;LS.set('pc_zoom',v);
+      $('camCtl').querySelectorAll('[data-z]').forEach(function(x){x.setAttribute('aria-pressed',String(+x.dataset.z===v));});
+    }).catch(function(){toast('ซูมไม่ได้บนเครื่องนี้');});
+  }else if(b.dataset.t){
+    caps.torchFeature().apply(!torchOn).then(function(){
+      torchOn=!torchOn;b.setAttribute('aria-pressed',String(torchOn));
+    }).catch(function(){toast('เปิดไฟแฟลชไม่ได้บนเครื่องนี้');});
+  }
+});
+function stopCam(msg){
+  clearTimeout(idleT);$('btnCamOff').hidden=true;$('camCtl').hidden=true;torchOn=false;
   if(!scanner||!camOn){return Promise.resolve();}
   camOn=false;
-  return scanner.stop().then(function(){camMessage('กล้องปิดอยู่',true,'เปิดกล้อง');}).catch(function(){});
+  var show=function(){camMessage(typeof msg==='string'?msg:'กล้องปิดอยู่',true,'เปิดกล้อง');};
+  return scanner.stop().then(show,show);
 }
 $('btnCam').addEventListener('click',startCam);
+$('btnCamOff').addEventListener('click',function(){camWanted=false;stopCam('ปิดกล้องแล้ว');});
 
 /* ---------- รายการสินค้า ---------- */
 var catFilter=LS.get('pc_catfilter',''); // '' = ทุกหมวด
@@ -534,7 +705,8 @@ function renderList(){
   shown.forEach(function(p){
     n++;
     if(group&&catOf(p)!==prevCat){prevCat=catOf(p);h+='<div class="gh">'+esc(prevCat)+'</div>';}
-    h+='<button type="button" class="p" data-b="'+esc(p.barcode)+'"><span class="n">'+esc(p.name)+'<small class="num">'+esc(p.barcode)+'</small></span><b class="num">'+money(p.price)+'</b></button>';
+    h+='<button type="button" class="p'+(p.dup?' dup':'')+'" data-b="'+esc(p.barcode)+'"><span class="n">'+esc(p.name)+'<small class="num">'+esc(p.barcode)+
+      (p.dup?' · ⚠ บาร์โค้ดซ้ำ ไม่ถูกใช้ (ลบแถวนี้ในชีต)':'')+'</small></span><b class="num">'+money(p.price)+'</b></button>';
   });
   box.innerHTML=h||'<div class="empty">ไม่พบสินค้า</div>';
   var filtered=q||catFilter;
@@ -598,16 +770,20 @@ function resetAdd(){
   aStat('สแกนบาร์โค้ดสินค้าชิ้นต่อไป หรือพิมพ์เลขด้านบน','new');
   lastAt=Date.now(); // ถ้าบาร์โค้ดเดิมยังอยู่ในกล้อง จะไม่เติมฟอร์มซ้ำ
 }
-function localUpsert(p){
-  var k=norm(p.barcode),list=products.slice(),hit=-1;
-  for(var i=0;i<list.length;i++){if(norm(list[i].barcode)===k){hit=i;break;}}
-  if(hit>=0)list[hit]=p;else list.push(p);
-  setProducts(list,Date.now());persistProducts();
+/* บันทึก/ลบ: เก็บลงเครื่องทันที (หน้าจอเปลี่ยนเลย) แล้วส่งขึ้นชีต ถ้าเน็ตหลุดจะส่งเองเมื่อออนไลน์ */
+function submitOp(op,okMsg){
+  if(!API_URL){serverList=applyOps(serverList,[op]);rebuild();toast(okMsg+' (โหมดทดลอง)');return;}
+  enqueue(op);
+  toast(okMsg); // หน้าจออัปเดตแล้ว ไม่ต้องรอเน็ต
+  flushQueue().then(function(r){
+    if(r==='offline')toast('ยังไม่มีเน็ต: เก็บไว้ในเครื่องแล้ว จะส่งขึ้นชีตเองเมื่อออนไลน์');
+    else if(r==='script'||r==='pin')toast('ยังส่งขึ้นชีตไม่ได้ เก็บไว้ในเครื่องแล้ว');
+  });
 }
-function persistProducts(){
-  if(!API_URL)return;
-  LS.set('pc_products',{at:Date.now(),list:products});
-  setSync('อัปเดต '+fmtTime(Date.now())+' · '+products.length+' รายการ');
+function showPinBox(open){
+  var need=pinRequired||!!$('aPin').value;
+  $('pinBox').hidden=!need;
+  if(open||(need&&!$('aPin').value))$('pinBox').open=true;
 }
 function addRecent(t){recent.unshift(t);recent=recent.slice(0,5);
   $('aRecent').innerHTML=recent.map(function(r){return '<div>✓ '+r+'</div>';}).join('');}
@@ -620,8 +796,8 @@ function postApi(payload){
     .then(function(t){
       try{return JSON.parse(t);}catch(e){}
       // Apps Script ตอบกลับเป็นหน้า error แทนข้อมูล (อินเทอร์เน็ตใช้ได้ แต่สคริปต์มีปัญหา)
-      if(/doPost/.test(t))return {ok:false,message:'Apps Script ยังไม่มีฟังก์ชันบันทึก: ต้อง Deploy เป็นเวอร์ชันใหม่'};
-      return {ok:false,message:'Apps Script ตอบกลับผิดปกติ ตรวจสอบการ Deploy และสิทธิ์ "ทุกคน"'};
+      if(/doPost/.test(t))return {ok:false,error:'script',message:'Apps Script ยังไม่มีฟังก์ชันบันทึก: ต้อง Deploy เป็นเวอร์ชันใหม่'};
+      return {ok:false,error:'script',message:'Apps Script ตอบกลับผิดปกติ ตรวจสอบการ Deploy และสิทธิ์ "ทุกคน"'};
     })
     .then(function(j){clearTimeout(to);return j;},function(e){clearTimeout(to);throw e;});
 }
@@ -630,8 +806,20 @@ function apiError(j){
   return (j&&j.message)||'บันทึกไม่สำเร็จ';
 }
 $('aPin').value=LS.get('pc_pin','');
-$('pinBox').open=!$('aPin').value;
+showPinBox();
+$('aPin').addEventListener('change',function(){LS.set('pc_pin',this.value.trim());flushQueue();});
 $('aBarcode').addEventListener('change',function(){fillAdd(this.value,false);});
+$('btnNoCode').addEventListener('click',function(){
+  var code=nextNoCode();
+  fillAdd(code,false);
+  aStat('สินค้าไม่มีบาร์โค้ด: ใช้รหัส '+code+' · ตอนขายแตะเลือกในหน้าสแกน หรือพิมพ์รหัสนี้','new');
+});
+$('noCodeList').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-b]');if(!b)return;
+  lastCode='';showResult(b.dataset.b);
+  if($('auto').checked){var p=byCode[norm(b.dataset.b)];if(p)toast('เพิ่ม '+p.name+' ลงตะกร้าแล้ว');}
+  else $('result').scrollIntoView({behavior:'smooth',block:'center'});
+});
 $('addForm').addEventListener('submit',function(e){
   e.preventDefault();
   var code=$('aBarcode').value.trim(),name=$('aName').value.trim(),price=parseFloat(String($('aPrice').value).replace(/,/g,''));
@@ -641,40 +829,23 @@ $('addForm').addEventListener('submit',function(e){
   price=Math.round(price*100)/100;
   var cat=getCat();
   if($('aCat').value===NEWCAT&&!cat){aStat('ยังไม่ได้พิมพ์ชื่อหมวดหมู่ใหม่','err');$('aCatNew').focus();return;}
-  var existed=!!byCode[norm(code)],item={barcode:code,name:name,price:price,category:cat};
-  var done=function(){
-    lastCat=cat;LS.set('pc_lastcat',cat);
-    localUpsert(item);renderCatSelect(cat);
-    addRecent('<b>'+esc(name)+'</b> '+money(price)+' บาท'+(cat?' · '+esc(cat):'')+(existed?' (แก้ไข)':' (เพิ่มใหม่)'));
-    toast(existed?'แก้ไขสินค้าแล้ว':'เพิ่มสินค้าแล้ว');beep(true);resetAdd();
-  };
-  if(!API_URL){done();toast('โหมดทดลอง: เก็บไว้ชั่วคราวในหน้านี้เท่านั้น');return;}
-  var pin=$('aPin').value.trim();
-  if(!pin){$('pinBox').open=true;aStat('ใส่รหัส PIN ก่อนบันทึก','err');$('aPin').focus();return;}
-  var btn=$('btnSave');btn.disabled=true;btn.textContent='กำลังบันทึก…';
-  postApi({action:'upsert',pin:pin,barcode:code,name:name,price:price,category:cat})
-    .then(function(j){
-      if(j&&j.ok){LS.set('pc_pin',pin);done();}
-      else{aStat(apiError(j),'err');if(j&&j.error==='pin'){$('pinBox').open=true;$('aPin').focus();}}
-    })
-    .catch(function(){aStat('บันทึกไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่','err');})
-    .then(function(){btn.disabled=false;btn.textContent='บันทึกสินค้า';});
+  if(pinRequired&&!$('aPin').value.trim()){showPinBox(true);aStat('ใส่รหัส PIN ก่อนบันทึก','err');$('aPin').focus();return;}
+  var existed=!!byCode[norm(code)];
+  lastCat=cat;LS.set('pc_lastcat',cat);
+  submitOp({action:'upsert',barcode:code,name:name,price:price,category:cat},existed?'แก้ไขสินค้าแล้ว':'เพิ่มสินค้าแล้ว');
+  renderCatSelect(cat);
+  addRecent('<b>'+esc(name)+'</b> '+money(price)+' บาท'+(cat?' · '+esc(cat):'')+(existed?' (แก้ไข)':' (เพิ่มใหม่)'));
+  beep(true);resetAdd();
 });
 $('btnDel').addEventListener('click',function(){
   var btn=this,code=$('aBarcode').value.trim();
   if(btn.dataset.arm!=='1'){btn.dataset.arm='1';btn.textContent='แตะอีกครั้งเพื่อยืนยันการลบ';
     setTimeout(function(){btn.dataset.arm='';btn.textContent='ลบสินค้านี้';},3000);return;}
   btn.dataset.arm='';btn.textContent='ลบสินค้านี้';
-  var done=function(){
-    var k=norm(code);setProducts(products.filter(function(p){return norm(p.barcode)!==k;}),Date.now());persistProducts();
-    addRecent('ลบ <b>'+esc(code)+'</b> แล้ว');toast('ลบสินค้าแล้ว');resetAdd();
-  };
-  if(!API_URL){done();return;}
-  var pin=$('aPin').value.trim();
-  if(!pin){$('pinBox').open=true;aStat('ใส่รหัส PIN ก่อนลบ','err');return;}
-  postApi({action:'delete',pin:pin,barcode:code})
-    .then(function(j){if(j&&j.ok){done();}else{aStat(apiError(j),'err');}})
-    .catch(function(){aStat('ลบไม่สำเร็จ ตรวจสอบอินเทอร์เน็ตแล้วลองใหม่','err');});
+  if(!code)return;
+  if(pinRequired&&!$('aPin').value.trim()){showPinBox(true);aStat('ใส่รหัส PIN ก่อนลบ','err');$('aPin').focus();return;}
+  submitOp({action:'delete',barcode:code},'ลบสินค้าแล้ว');
+  addRecent('ลบ <b>'+esc(code)+'</b> แล้ว');resetAdd();
 });
 
 /* ---------- แท็บ ---------- */
@@ -694,25 +865,24 @@ document.querySelector('nav').addEventListener('click',function(e){
 });
 $('btnRefresh').addEventListener('click',function(){refresh(true);});
 document.addEventListener('visibilitychange',function(){
-  if(document.hidden){stopCam();}
+  if(document.hidden){camWanted=false;stopCam();} // สลับแอป/ล็อกจอ = ปิดกล้อง กลับมาแตะเปิดเอง
   else{
-    if((curView==='scan'||curView==='add')&&camWanted&&!camOn)startCam();
     if(API_URL&&Date.now()-(updatedAt||0)>5*60*1000)refresh(false);
+    else flushQueue();
   }
 });
 
 /* ---------- เริ่มต้น ---------- */
 (function init(){
   var c=LS.get('pc_products',null);
-  if(API_URL&&c&&c.list){
-    setProducts(c.list,c.at);setSync('ข้อมูลเมื่อ '+fmtTime(c.at)+' · '+products.length+' รายการ');
-  }
+  if(API_URL&&c&&c.list){serverList=c.list;rebuild(c.at);}
+  else if(API_URL&&queue.length){rebuild(Date.now());}
   renderCatSelect(lastCat);renderCart();renderList();
   refresh(false);
   if('serviceWorker' in navigator&&location.protocol!=='file:'){
     navigator.serviceWorker.register('sw.js').catch(function(){});
   }
-  if(camWanted)startCam();
+  try{localStorage.removeItem('pc_cam');}catch(e){} // ค่าเก่าที่เคยสั่งให้เปิดกล้องเองตอนเปิดแอป
 })();
 window.__pc={onCode:onCode,show:show,get cart(){return cart;}};
 })();
